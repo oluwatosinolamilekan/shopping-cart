@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
-import toast from 'react-hot-toast';
+import ActionButton from '@/Components/ActionButton';
+import EmptyState from '@/Components/EmptyState';
+import useFlashToast from '@/hooks/useFlashToast';
 
 export default function Index({ products, pagination, filters, categories, cartCount: initialCartCount }) {
     const [addingToCart, setAddingToCart] = useState({});
@@ -12,7 +14,13 @@ export default function Index({ products, pagination, filters, categories, cartC
     const [selectedCategory, setSelectedCategory] = useState(filters.category || '');
     const [minPrice, setMinPrice] = useState(filters.min_price || '');
     const [maxPrice, setMaxPrice] = useState(filters.max_price || '');
-    const { flash } = usePage().props;
+    
+    // Use custom hook for flash messages
+    useFlashToast({
+        success: {
+            icon: '🛒',
+        },
+    });
 
     // Helper function to build params object with only non-empty values
     const buildParams = (additionalParams = {}) => {
@@ -40,27 +48,6 @@ export default function Index({ products, pagination, filters, categories, cartC
         setMinPrice(filters.min_price || '');
         setMaxPrice(filters.max_price || '');
     }, [filters.search, filters.category, filters.min_price, filters.max_price]);
-
-    // Handle flash messages with toasts
-    useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success, {
-                duration: 3000,
-                icon: '🛒',
-            });
-        }
-        if (flash?.error) {
-            toast.error(flash.error, {
-                duration: 4000,
-            });
-        }
-        if (flash?.warning) {
-            toast(flash.warning, {
-                duration: 3500,
-                icon: '⚠️',
-            });
-        }
-    }, [flash]);
 
     const handleSort = (sortBy) => {
         const newSortOrder = filters.sort_by === sortBy && filters.sort_order === 'asc' ? 'desc' : 'asc';
@@ -112,7 +99,7 @@ export default function Index({ products, pagination, filters, categories, cartC
         
         setAddingToCart(prev => ({ ...prev, [productId]: true }));
         
-        router.post('/cart/add', {
+        router.post(route('cart.add'), {
             product_id: productId,
             quantity: quantity,
         }, {
@@ -121,6 +108,9 @@ export default function Index({ products, pagination, filters, categories, cartC
             onSuccess: () => {
                 setQuantities(prev => ({ ...prev, [productId]: 1 }));
                 setCartCount(prev => prev + quantity);
+            },
+            onError: (errors) => {
+                console.error('Error adding to cart:', errors);
             },
             onFinish: () => {
                 setAddingToCart(prev => ({ ...prev, [productId]: false }));
@@ -298,33 +288,14 @@ export default function Index({ products, pagination, filters, categories, cartC
                                     </div>
 
                                     {products.length === 0 ? (
-                                        <div className="text-center py-12">
-                                            <svg
-                                                className="mx-auto h-12 w-12 text-gray-400"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                />
-                                            </svg>
-                                            <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                Try adjusting your search or filter criteria
-                                            </p>
-                                            <div className="mt-6">
-                                                <button
-                                                    onClick={handleClearFilters}
-                                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                                >
-                                                    Clear all filters
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <EmptyState
+                                            title="No products found"
+                                            description="Try adjusting your search or filter criteria"
+                                            action={{
+                                                text: 'Clear all filters',
+                                                onClick: handleClearFilters,
+                                            }}
+                                        />
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                             {products.map((product) => (
@@ -382,13 +353,15 @@ export default function Index({ products, pagination, filters, categories, cartC
                                                                             className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                                         />
                                                                     </div>
-                                                                    <PrimaryButton
+                                                                    <ActionButton
                                                                         onClick={() => addToCart(product.id)}
-                                                                        disabled={addingToCart[product.id]}
+                                                                        loading={addingToCart[product.id]}
+                                                                        loadingText="Adding..."
+                                                                        variant="primary"
                                                                         className="w-full justify-center"
                                                                     >
-                                                                        {addingToCart[product.id] ? 'Adding...' : 'Add to Cart'}
-                                                                    </PrimaryButton>
+                                                                        Add to Cart
+                                                                    </ActionButton>
                                                                 </>
                                                             ) : (
                                                                 <>

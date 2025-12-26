@@ -10,13 +10,14 @@ use App\Repositories\CartRepository;
 use App\Repositories\ProductRepository;
 use App\Services\CheckoutService;
 use App\Traits\ValidatesStock;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CartController extends Controller
 {
-    use ValidatesStock;
+    use ValidatesStock, AuthorizesRequests;
 
     public function __construct(
         protected CartRepository $cartRepository,

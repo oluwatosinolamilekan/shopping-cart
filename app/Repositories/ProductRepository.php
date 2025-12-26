@@ -50,6 +50,7 @@ class ProductRepository
 
     /**
      * Decrease product stock
+     * Cache will be automatically cleared by ProductObserver
      */
     public function decreaseStock(Product $product, int $quantity): bool
     {

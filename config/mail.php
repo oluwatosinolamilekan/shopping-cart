@@ -79,10 +79,29 @@ return [
             'transport' => 'array',
         ],
 
+        'mailhog' => [
+            'transport' => 'smtp',
+            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'port' => env('MAIL_PORT', 1025),
+            'encryption' => null,
+            'username' => null,
+            'password' => null,
+            'timeout' => null,
+        ],
+
         'failover' => [
             'transport' => 'failover',
             'mailers' => [
                 'smtp',
+                'log',
+            ],
+            'retry_after' => 60,
+        ],
+
+        'mailhog_failover' => [
+            'transport' => 'failover',
+            'mailers' => [
+                'mailhog',
                 'log',
             ],
             'retry_after' => 60,

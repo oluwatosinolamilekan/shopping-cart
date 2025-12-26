@@ -1,20 +1,11 @@
-export default function DangerButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
-    return (
-        <button
-            {...props}
-            className={
-                `inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 active:bg-red-700 ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
-            disabled={disabled}
-        >
-            {children}
-        </button>
-    );
+import Button from './Button';
+
+/**
+ * DangerButton Component
+ * 
+ * Wrapper around the base Button component with danger variant.
+ * Maintains backward compatibility while following DRY principles.
+ */
+export default function DangerButton({ ...props }) {
+    return <Button variant="danger" {...props} />;
 }

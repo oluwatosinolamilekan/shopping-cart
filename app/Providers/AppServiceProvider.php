@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\CartItem;
+use App\Models\Product;
+use App\Observers\ProductObserver;
 use App\Policies\CartItemPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
@@ -27,5 +29,8 @@ class AppServiceProvider extends ServiceProvider
         
         // Register policies
         Gate::policy(CartItem::class, CartItemPolicy::class);
+        
+        // Register observers
+        Product::observe(ProductObserver::class);
     }
 }

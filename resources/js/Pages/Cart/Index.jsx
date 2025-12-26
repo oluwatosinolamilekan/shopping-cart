@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DangerButton from '@/Components/DangerButton';
-import toast from 'react-hot-toast';
+import ActionButton from '@/Components/ActionButton';
+import EmptyState from '@/Components/EmptyState';
+import useFlashToast from '@/hooks/useFlashToast';
 
 export default function Index({ cartItems, total }) {
     const [updatingItem, setUpdatingItem] = useState(null);
@@ -11,28 +13,9 @@ export default function Index({ cartItems, total }) {
     const [quantities, setQuantities] = useState(
         cartItems.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity }), {})
     );
-    const { flash } = usePage().props;
-
-    // Handle flash messages with toasts
-    useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success, {
-                duration: 3000,
-                icon: '✓',
-            });
-        }
-        if (flash?.error) {
-            toast.error(flash.error, {
-                duration: 4000,
-            });
-        }
-        if (flash?.warning) {
-            toast(flash.warning, {
-                duration: 3500,
-                icon: '⚠️',
-            });
-        }
-    }, [flash]);
+    
+    // Use custom hook for flash messages
+    useFlashToast();
 
     const updateQuantity = (cartItemId, productId, newQuantity) => {
         const numValue = parseInt(newQuantity) || 1;
@@ -94,15 +77,14 @@ export default function Index({ cartItems, total }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             {cartItems.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
-                                    <Link
-                                        href={route('products.index')}
-                                        className="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                    >
-                                        Start Shopping
-                                    </Link>
-                                </div>
+                                <EmptyState
+                                    title="Your cart is empty"
+                                    description="Add some products to get started"
+                                    action={{
+                                        text: 'Start Shopping',
+                                        href: route('products.index'),
+                                    }}
+                                />
                             ) : (
                                 <>
                                     <div className="space-y-4 mb-6">
@@ -138,25 +120,30 @@ export default function Index({ cartItems, total }) {
                                                         onChange={(e) => updateQuantity(item.id, item.product.id, e.target.value)}
                                                         className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                     />
-                                                    <button
+                                                    <ActionButton
                                                         onClick={() => updateCart(item.id)}
-                                                        disabled={updatingItem === item.id || quantities[item.id] === item.quantity}
-                                                        className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
+                                                        loading={updatingItem === item.id}
+                                                        loadingText="Updating..."
+                                                        disabled={quantities[item.id] === item.quantity}
+                                                        variant="primary"
+                                                        className="px-3 py-2 text-sm"
                                                     >
-                                                        {updatingItem === item.id ? 'Updating...' : 'Update'}
-                                                    </button>
+                                                        Update
+                                                    </ActionButton>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-lg font-semibold text-gray-900">
                                                         ${(item.quantity * parseFloat(item.product.price)).toFixed(2)}
                                                     </p>
                                                 </div>
-                                                <DangerButton
+                                                <ActionButton
                                                     onClick={() => removeItem(item.id)}
-                                                    disabled={removingItem === item.id}
+                                                    loading={removingItem === item.id}
+                                                    loadingText="Removing..."
+                                                    variant="danger"
                                                 >
-                                                    {removingItem === item.id ? 'Removing...' : 'Remove'}
-                                                </DangerButton>
+                                                    Remove
+                                                </ActionButton>
                                             </div>
                                         ))}
                                     </div>

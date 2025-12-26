@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Pagination from '@/Components/Pagination';
+import EmptyState from '@/Components/EmptyState';
 
 export default function Index({ orders }) {
     const getStatusColor = (status) => {
@@ -47,36 +48,30 @@ export default function Index({ orders }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             {orders.data.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <svg
-                                        className="mx-auto h-12 w-12 text-gray-400"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        aria-hidden="true"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                        />
-                                    </svg>
-                                    <h3 className="mt-2 text-lg font-medium text-gray-900">
-                                        No orders yet
-                                    </h3>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        You haven't placed any orders yet.
-                                    </p>
-                                    <div className="mt-6">
-                                        <Link
-                                            href={route('products.index')}
-                                            className="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                <EmptyState
+                                    icon={
+                                        <svg
+                                            className="mx-auto h-12 w-12 text-gray-400"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            aria-hidden="true"
                                         >
-                                            Start Shopping
-                                        </Link>
-                                    </div>
-                                </div>
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                            />
+                                        </svg>
+                                    }
+                                    title="No orders yet"
+                                    description="You haven't placed any orders yet."
+                                    action={{
+                                        text: 'Start Shopping',
+                                        href: route('products.index'),
+                                    }}
+                                />
                             ) : (
                                 <div className="space-y-6">
                                     {orders.data.map((order) => (

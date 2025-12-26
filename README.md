@@ -153,7 +153,7 @@ Alternatively, run each service in separate terminals:
 ### Tables
 
 1. **users** - User authentication and profiles
-   - `is_admin` - Flag to identify admin users
+   - `role` - Flag to identify admin users
 
 2. **products** - Product catalog
    - `name`, `description`, `price`, `stock_quantity`, `image_url`

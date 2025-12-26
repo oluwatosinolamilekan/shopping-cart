@@ -28,7 +28,7 @@ A simple e-commerce shopping cart application built with Laravel and React (via 
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/oluwatosinolamilekan/shopping-cart
    cd shopping-cart
    ```
 

@@ -4,7 +4,7 @@ A simple e-commerce shopping cart application built with Laravel and React (via 
 
 ## Demo Video
 
-🎥 **[Watch the Demo Video](https://www.loom.com/share/YOUR_LOOM_VIDEO_ID)**
+🎥 **[Watch the Demo Video](https://www.loom.com/share/7baecf42998a473e8bb6b789dcfe5895)**
 
 See the application in action and learn about the implementation approach.
 

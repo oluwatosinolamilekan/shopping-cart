@@ -200,7 +200,7 @@ Alternatively, run each service in separate terminals:
 
 ### Low Stock Notification
 
-When a product's stock falls to 10 or below after checkout, a job is dispatched to the queue:
+When a product's stock falls to 10 or below after checkout, a job is automatically dispatched to the queue:
 
 ```php
 if ($product->isLowStock()) {
@@ -208,7 +208,50 @@ if ($product->isLowStock()) {
 }
 ```
 
-The job sends an email to the admin user with product details.
+The notification system:
+- Automatically monitors stock levels after each checkout
+- Triggers when stock quantity reaches 10 or below
+- Sends email alerts to all admin users
+- Includes product details and current stock level
+
+#### Testing Low Stock Alerts
+
+To test the low stock notification feature:
+
+1. **Start the queue worker** (required for processing email jobs):
+   ```bash
+   php artisan queue:work
+   ```
+
+2. **Configure your mail driver** (see [Mail Testing](#mail-testing) section):
+   - Use MailHog/Mailpit for local testing with web UI
+   - Or use log driver to view emails in `storage/logs/laravel.log`
+
+3. **Trigger a low stock alert**:
+   - Login as a user (test@example.com / password)
+   - Find a product with stock quantity above 10
+   - Add enough quantity to cart so that after checkout, stock falls to 10 or below
+   - Complete the checkout process
+
+4. **View the alert email**:
+   - Check MailHog/Mailpit web interface at `http://localhost:8025`
+   - Or view the log file: `tail -f storage/logs/laravel.log`
+
+#### Email Format
+
+The low stock alert email is professionally formatted and includes:
+
+![Low Stock Alert Email](low-stock.png)
+
+- **Alert Header**: Warning icon with clear "Low Stock Alert" title
+- **Product Information**:
+  - Product Name
+  - Current Stock Level (highlighted)
+  - Product Price
+- **Action Required**: Clear message indicating immediate attention needed
+- **Timestamp**: When the alert was generated
+
+The email provides admins with immediate visibility into inventory issues, enabling quick restocking decisions.
 
 ### Daily Sales Report
 

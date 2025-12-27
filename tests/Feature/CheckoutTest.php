@@ -10,6 +10,7 @@ use App\Models\CartItem;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -296,6 +297,67 @@ class CheckoutTest extends TestCase
             'user_id' => $this->user->id,
             'total_amount' => 59.97,
         ]);
+    }
+
+    public function test_checkout_clears_product_cache(): void
+    {
+        // Set cache driver to database for this test
+        config(['cache.default' => 'database']);
+        Cache::clearResolvedInstances();
+        
+        // Set up a cache key for products
+        $cacheKey = 'products:filtered:none:none:none:none:name:asc:1';
+        
+        // Simulate cached products
+        Cache::put($cacheKey, ['cached' => 'data'], 3600);
+        $this->assertTrue(Cache::has($cacheKey));
+
+        CartItem::create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+        ]);
+
+        $this->actingAs($this->user)
+            ->post(route('cart.checkout'));
+        
+        // Verify cache was cleared
+        $this->assertFalse(Cache::has($cacheKey));
+    }
+
+    public function test_checkout_clears_all_filtered_product_caches(): void
+    {
+        // Set cache driver to database for this test
+        config(['cache.default' => 'database']);
+        Cache::clearResolvedInstances();
+        
+        // Set up multiple cache keys with different filters
+        $cacheKeys = [
+            'products:filtered:laptop:none:none:none:name:asc:1',
+            'products:filtered:none:electronics:none:none:price:asc:1',
+            'products:filtered:none:none:10.00:100.00:name:desc:1',
+            'products:filtered:test:none:none:none:created_at:asc:2',
+        ];
+        
+        // Populate cache
+        foreach ($cacheKeys as $key) {
+            Cache::put($key, ['cached' => 'data'], 3600);
+            $this->assertTrue(Cache::has($key));
+        }
+
+        CartItem::create([
+            'user_id' => $this->user->id,
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+        ]);
+
+        $this->actingAs($this->user)
+            ->post(route('cart.checkout'));
+        
+        // Verify all product caches were cleared
+        foreach ($cacheKeys as $key) {
+            $this->assertFalse(Cache::has($key), "Cache key {$key} should be cleared");
+        }
     }
 }
 

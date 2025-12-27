@@ -54,8 +54,13 @@ class CheckoutService
 
                 // Update product stock
                 $product = $cartItem->product;
+                // Refresh the product to get the latest data
+                $product->refresh();
                 $this->productRepository->decreaseStock($product, $cartItem->quantity);
 
+                // Refresh again to check updated stock
+                $product->refresh();
+                
                 // Check for low stock and dispatch notification
                 if ($this->productRepository->isLowStock($product)) {
                     LowStockNotification::dispatch($product);

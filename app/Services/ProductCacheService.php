@@ -60,36 +60,68 @@ class ProductCacheService
     }
 
     /**
-     * Try to clear Redis caches using pattern matching
+     * Try to clear caches using driver-specific pattern matching
      */
     protected function clearRedisProductCaches($cacheStore): bool
     {
-        if (!method_exists($cacheStore, 'getRedis')) {
-            return false;
-        }
-
-        try {
-            $redis = $cacheStore->getRedis();
-            $prefix = config('cache.prefix') ? config('cache.prefix') . ':' : '';
-            
-            // Get all product cache keys
-            $keys = $redis->keys($prefix . 'products:filtered:*');
-            
-            if (!empty($keys)) {
-                // Remove prefix from keys before deleting
-                $keysToDelete = array_map(function ($key) use ($prefix) {
-                    return str_replace($prefix, '', $key);
-                }, $keys);
+        // Try Redis first
+        if (method_exists($cacheStore, 'getRedis')) {
+            try {
+                $redis = $cacheStore->getRedis();
+                $prefix = config('cache.prefix') ? config('cache.prefix') . ':' : '';
                 
-                foreach ($keysToDelete as $key) {
-                    Cache::forget($key);
+                // Get all product cache keys
+                $keys = $redis->keys($prefix . 'products:filtered:*');
+                
+                if (!empty($keys)) {
+                    // Remove prefix from keys before deleting
+                    $keysToDelete = array_map(function ($key) use ($prefix) {
+                        return str_replace($prefix, '', $key);
+                    }, $keys);
+                    
+                    foreach ($keysToDelete as $key) {
+                        Cache::forget($key);
+                    }
                 }
+                
+                return true;
+            } catch (\Exception $e) {
+                // Fall through to database clearing
             }
+        }
+        
+        // Try Database cache driver
+        if ($this->clearDatabaseProductCaches($cacheStore)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Clear product caches from database cache driver
+     */
+    protected function clearDatabaseProductCaches($cacheStore): bool
+    {
+        try {
+            // Check if we're using database cache driver
+            $driver = config('cache.default');
+            if ($driver !== 'database') {
+                return false;
+            }
+            
+            $table = config('cache.stores.database.table', 'cache');
+            $prefix = config('cache.prefix', '');
+            
+            // Delete all cache entries with keys starting with products:filtered:
+            \DB::table($table)
+                ->where('key', 'like', $prefix . 'products:filtered:%')
+                ->delete();
             
             return true;
         } catch (\Exception $e) {
             // Log the error if needed
-            // \Log::warning('Failed to clear Redis product caches: ' . $e->getMessage());
+            // \Log::warning('Failed to clear database product caches: ' . $e->getMessage());
             return false;
         }
     }
